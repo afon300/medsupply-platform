@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package com.medsupply.rpc.warehouse;
+
+option java_multiple_files = true;
+option java_package = "com.medsupply.rpc.warehouse";
+option java_outer_classname = "WarehouseFulfillmentProto";
+
+// Central Regional Medical Warehouse RPC Contract.
+// Exposes strongly-typed operations for catalog discovery, FEFO (First-Expired, First-Out)
+// batch stock reservation with idempotency protection, and Saga compensating release.
+service WarehouseFulfillmentService {
+  rpc ListCatalog (ListCatalogRequest) returns (ListCatalogResponse);
+  rpc GetItemAvailability (ItemAvailabilityRequest) returns (ItemAvailabilityResponse);
+  rpc ReserveStock (ReserveStockRequest) returns (ReserveStockResponse);
+  rpc ReleaseReservation (ReleaseReservationRequest) returns (ReleaseReservationResponse);
+  rpc GetReservation (GetReservationRequest) returns (ReserveStockResponse);
+}
+
+message ListCatalogRequest {
+  string category_filter = 1;
+  string search_query = 2;
+}
+
+message SupplyCatalogItem {
+  string sku = 1;
+  string name = 2;
+  string category = 3;
+  string storage_condition = 4;
+  string unit_of_measure = 5;
+  double unit_price_eur = 6;
+  int32 total_available_units = 7;
+  int32 active_batch_count = 8;
+  string earliest_expiry_date = 9;
+  bool cold_chain_required = 10;
+}
+
+message ListCatalogResponse {
+  repeated SupplyCatalogItem items = 1;
+  string warehouse_node_id = 2;
+  string generated_at_iso = 3;
+}
+
+message ItemAvailabilityRequest {
+  string sku = 1;
+}
+
+message BatchLotInfo {
+  string batch_lot_number = 1;
+  int32 available_units = 2;
+  string expiry_date = 3;
+  string warehouse_zone = 4;
+}
+
+message ItemAvailabilityResponse {
+  SupplyCatalogItem item = 1;
+  repeated BatchLotInfo batches = 2;
+}
+
+message ReservationLineRequest {
+  string sku = 1;
+  int32 requested_quantity = 2;
+}
+
+message ReserveStockRequest {
+  string idempotency_key = 1;
+  string hospital_id = 2;
+  string department_code = 3;
+  string external_order_ref = 4;
+  bool priority_emergency = 5;
+  repeated ReservationLineRequest lines = 6;
+}
+
+message BatchAllocation {
+  string sku = 1;
+  string item_name = 2;
+  string batch_lot_number = 3;
+  string expiry_date = 4;
+  string storage_condition = 5;
+  int32 allocated_quantity = 6;
+  double unit_price_eur = 7;
+  double line_total_eur = 8;
+}
+
+message ReserveStockResponse {
+  string reservation_id = 1;
+  string status = 2;
+  double total_reserved_cost_eur = 3;
+  bool replayed_from_idempotency = 4;
+  string reserved_at_iso = 5;
+  repeated BatchAllocation allocations = 6;
+}
+
+message ReleaseReservationRequest {
+  string reservation_id = 1;
+  string reason = 2;
+}
+
+message ReleaseReservationResponse {
+  string reservation_id = 1;
+  string status = 2;
+  int32 restored_total_units = 3;
+  string released_at_iso = 4;
+}
+
+message GetReservationRequest {
+  string reservation_id = 1;
+}

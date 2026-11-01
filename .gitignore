@@ -1,0 +1,27 @@
+# Gradle & Java
+.gradle/
+build/
+out/
+bin/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+hs_err_pid*
+
+# Local H2 database files (runtime state)
+data/
+*.mv.db
+*.trace.db
+
+# Node / Frontend
+node_modules/
+medsupply-web-client/dist/
+medsupply-web-client/.vite/
+*.tsbuildinfo
+
+# OS & IDE
+.DS_Store
+.idea/
+*.iml
+.vscode/
+*.swp

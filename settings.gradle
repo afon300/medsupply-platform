@@ -1,0 +1,5 @@
+rootProject.name = 'medsupply-platform'
+
+include 'warehouse-rpc-contract'
+
+project(':warehouse-rpc-contract').projectDir = file('warehouse-rpc-contract')
