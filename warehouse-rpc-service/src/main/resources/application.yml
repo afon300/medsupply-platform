@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: warehouse-rpc-service
+  datasource:
+    url: jdbc:h2:file:./data/warehouse_inventory_db;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
+grpc:
+  server:
+    port: ${WAREHOUSE_GRPC_PORT:9090}
+
+medsupply:
+  warehouse:
+    node-id: ${WAREHOUSE_NODE_ID:EU-WEST-PARIS-HUB-01}
+
+logging:
+  level:
+    root: INFO
+    com.medsupply.warehouse: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [warehouse-rpc] %logger{36} - %msg%n"
