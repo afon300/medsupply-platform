@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://hospital-db:5432/hospital_db}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:hospital_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:hospital_secret}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+grpc:
+  client:
+    warehouseService:
+      address: ${WAREHOUSE_GRPC_ADDRESS:static://warehouse-rpc-service:9090}
+      negotiationType: plaintext

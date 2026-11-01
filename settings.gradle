@@ -2,6 +2,8 @@ rootProject.name = 'medsupply-platform'
 
 include 'warehouse-rpc-contract'
 include 'warehouse-rpc-service'
+include 'hospital-order-service'
 
 project(':warehouse-rpc-contract').projectDir = file('warehouse-rpc-contract')
 project(':warehouse-rpc-service').projectDir = file('warehouse-rpc-service')
+project(':hospital-order-service').projectDir = file('hospital-order-service')
