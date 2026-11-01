@@ -1,0 +1,78 @@
+services:
+  warehouse-db:
+    image: postgres:16-alpine
+    container_name: medsupply-warehouse-db
+    environment:
+      POSTGRES_DB: warehouse_db
+      POSTGRES_USER: warehouse_user
+      POSTGRES_PASSWORD: warehouse_secret
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U warehouse_user -d warehouse_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  hospital-db:
+    image: postgres:16-alpine
+    container_name: medsupply-hospital-db
+    environment:
+      POSTGRES_DB: hospital_db
+      POSTGRES_USER: hospital_user
+      POSTGRES_PASSWORD: hospital_secret
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hospital_user -d hospital_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  warehouse-rpc-service:
+    build:
+      context: .
+      dockerfile: warehouse-rpc-service/Dockerfile
+    container_name: medsupply-warehouse-rpc
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://warehouse-db:5432/warehouse_db
+      SPRING_DATASOURCE_USERNAME: warehouse_user
+      SPRING_DATASOURCE_PASSWORD: warehouse_secret
+      WAREHOUSE_GRPC_PORT: 9090
+      WAREHOUSE_NODE_ID: EU-WEST-PARIS-HUB-01
+    ports:
+      - "9090:9090"
+    depends_on:
+      warehouse-db:
+        condition: service_healthy
+
+  hospital-order-service:
+    build:
+      context: .
+      dockerfile: hospital-order-service/Dockerfile
+    container_name: medsupply-hospital-rest
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://hospital-db:5432/hospital_db
+      SPRING_DATASOURCE_USERNAME: hospital_user
+      SPRING_DATASOURCE_PASSWORD: hospital_secret
+      WAREHOUSE_GRPC_ADDRESS: static://warehouse-rpc-service:9090
+      HOSPITAL_ID: APHP-SAINT-LOUIS-PARIS
+    ports:
+      - "8080:8080"
+    depends_on:
+      hospital-db:
+        condition: service_healthy
+      warehouse-rpc-service:
+        condition: service_started
+
+  medsupply-web-client:
+    build:
+      context: ./medsupply-web-client
+      dockerfile: Dockerfile
+    container_name: medsupply-web-client
+    ports:
+      - "5173:80"
+    depends_on:
+      - hospital-order-service
